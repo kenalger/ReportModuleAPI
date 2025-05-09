@@ -68,7 +68,7 @@ namespace Dashboards_reports.Controllers
       return Ok(targets);
     }
     [HttpGet ("agingSummary")]
-    public async Task<ActionResult<IEnumerable<ARAgingSummaryDto>>> GetARAgingSummary()
+    public async Task<ActionResult<IEnumerable<ARAgingSummaryDto>>> GetARAgingSummary(int companyId)
     {
       var result = new List<ARAgingSummaryDto>();
 
@@ -78,6 +78,13 @@ namespace Dashboards_reports.Controllers
       using var command = connection.CreateCommand();
       command.CommandText = "sp_AR_Aging_Summary";
       command.CommandType = CommandType.StoredProcedure;
+
+      // 👇 Add CompanyId parameter
+      var companyParam = command.CreateParameter();
+      companyParam.ParameterName = "@CompanyId";
+      companyParam.Value = companyId;
+      companyParam.DbType = DbType.Int32;
+      command.Parameters.Add(companyParam);
 
       using var reader = await command.ExecuteReaderAsync();
       while (await reader.ReadAsync())
