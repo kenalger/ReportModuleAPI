@@ -67,8 +67,8 @@ namespace Dashboards_reports.Controllers
 
       return Ok(targets);
     }
-    [HttpGet ("agingSummary")]
-    public async Task<ActionResult<IEnumerable<ARAgingSummaryDto>>> GetARAgingSummary(int companyId)
+    [HttpGet("agingSummary")]
+    public async Task<ActionResult<IEnumerable<ARAgingSummaryDto>>> GetARAgingSummary(int companyId, DateTime asOfDate)
     {
       var result = new List<ARAgingSummaryDto>();
 
@@ -76,23 +76,31 @@ namespace Dashboards_reports.Controllers
       await connection.OpenAsync();
 
       using var command = connection.CreateCommand();
-      command.CommandText = "sp_AR_Aging_Summary";
+      command.CommandText = "GetARAgingPerCompany2";
       command.CommandType = CommandType.StoredProcedure;
 
-      // 👇 Add CompanyId parameter
+      // 👇 CompanyId parameter
       var companyParam = command.CreateParameter();
       companyParam.ParameterName = "@CompanyId";
       companyParam.Value = companyId;
       companyParam.DbType = DbType.Int32;
       command.Parameters.Add(companyParam);
 
+      // 👇 AsOfDate parameter
+      var dateParam = command.CreateParameter();
+      dateParam.ParameterName = "@AsOfDate";
+      dateParam.Value = asOfDate;
+      dateParam.DbType = DbType.Date;
+      command.Parameters.Add(dateParam);
+
       using var reader = await command.ExecuteReaderAsync();
       while (await reader.ReadAsync())
       {
         result.Add(new ARAgingSummaryDto
         {
-          CustomerId = Convert.ToInt32(reader["id"]),
-          CustomerName = reader["fullname"].ToString() ?? "",
+          CustomerId = Convert.ToInt32(reader["CustomerId"]),
+          CustomerName = reader["CustomerName"].ToString() ?? "",
+          NotDue = Convert.ToDecimal(reader["NotDue"]),
           Days0To30 = Convert.ToDecimal(reader["0_30_Days"]),
           Days31To60 = Convert.ToDecimal(reader["31_60_Days"]),
           Days61To90 = Convert.ToDecimal(reader["61_90_Days"]),
@@ -101,8 +109,11 @@ namespace Dashboards_reports.Controllers
         });
       }
 
+
+
       return Ok(result);
     }
+
 
     [HttpGet("agingDetail")]
     public async Task<ActionResult<IEnumerable<ARAgingDetailDto>>> GetARAgingDetail()

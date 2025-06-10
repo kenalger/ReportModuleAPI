@@ -4,6 +4,7 @@ namespace Dashboards_reports.Models
   {
     public int CustomerId { get; set; }
     public string? CustomerName { get; set; }
+    public decimal NotDue { get; set; }
     public decimal Days0To30 { get; set; }
     public decimal Days31To60 { get; set; }
     public decimal Days61To90 { get; set; }
