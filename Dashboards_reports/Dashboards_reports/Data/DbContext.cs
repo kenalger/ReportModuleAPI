@@ -1,4 +1,5 @@
 using Dashboards_reports.Models;
+using Dashboards_reports.Models.KPI;
 using Microsoft.EntityFrameworkCore;
 using System.Drawing;
 
@@ -22,6 +23,9 @@ namespace Dashboards_reports.Data
     public DbSet<SalesReservationReportDto> SalesReservationReportDtos { get; set; } = null!;
     public DbSet<ReservationVsDeliveryDto> ReservationVsDeliveryDtos { get; set; } = null!;
     public DbSet<SalesTargetDto> SalesMonthlyTargets { get; set; }
+    public DbSet<KPI_PRtoPOCycleTime> KPI_PRtoPOCycleTimes { get; set; }
+
+    public DbSet<KpiTargetDto> ProcurementKpiTargets { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -38,6 +42,7 @@ namespace Dashboards_reports.Data
       modelBuilder.Entity<SalesReservationReportDto>().HasNoKey();
       modelBuilder.Entity<TopSellingProductDetailDto>().HasNoKey();
       modelBuilder.Entity<ReservationVsDeliveryDto>().HasNoKey();
+      modelBuilder.Entity<KPI_PRtoPOCycleTime>().HasNoKey();
 
       modelBuilder.Entity<SalesTargetDto>(entity =>
       {
@@ -51,7 +56,18 @@ namespace Dashboards_reports.Data
         entity.Property(e => e.CreatedBy);
       });
 
-  }
+      modelBuilder.Entity<KpiTargetDto>(entity =>
+      {
+        entity.ToTable("KPI_Targets");
+
+        entity.HasKey(e => e.Id);
+
+        entity.Property(e => e.TargetValue)
+              .HasColumnType("decimal(18,2");
+        entity.Property(e => e.created_by);
+      });
+
+    }
 
   }
 }
