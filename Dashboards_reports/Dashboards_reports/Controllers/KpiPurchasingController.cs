@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System.Data;
 using System.Data.SqlClient;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Dashboards_reports.Controllers
 {
@@ -58,14 +59,22 @@ namespace Dashboards_reports.Controllers
         {
           detailList.Add(new PrPoCycleTimeDetailDto
           {
+            //PRID = reader.GetInt32(0),
+            //PRDate = reader.GetDateTime(1),
+            //POID = reader.GetInt32(2),
+            //PODate = reader.GetDateTime(3),
+            //POStatus = reader.IsDBNull(4) ? null : reader.GetString(4),
+            //CycleTime = reader.GetInt32(5)
             PRID = reader.GetInt32(0),
-            PRDate = reader.GetDateTime(1),
-            POID = reader.GetInt32(2),
-            PODate = reader.GetDateTime(3),
+            PRDate = reader.IsDBNull(1) ? (DateTime?)null : reader.GetDateTime(1),
+            POID = reader.IsDBNull(2) ? (int?)null : reader.GetInt32(2),
+            PODate = reader.IsDBNull(3) ? (DateTime?)null : reader.GetDateTime(3),
             POStatus = reader.IsDBNull(4) ? null : reader.GetString(4),
-            CycleTime = reader.GetInt32(5)
+            CycleTime = reader.IsDBNull(5) ? 0 : reader.GetInt32(5)
           });
         }
+
+       
 
         //  Result Set 2: KPI Summary
         if (await reader.NextResultAsync() && await reader.ReadAsync())
@@ -322,6 +331,95 @@ namespace Dashboards_reports.Controllers
 
       return Ok(response);
     }
+
+    [HttpGet("pr-to-rr-cycle-time")]
+    public async Task<ActionResult<PrRrCycleTimeResponseDto>> GetPrToRrCycleTime(int Month, int Year, int CompanyId)
+    {
+      var detailList = new List<PrRrCycleTimeDetailDto>();
+      PrRrCycleTimeSummaryDto? summary = null;
+      var trendList = new List<KpiPrToRrCycleTimeTrend>();
+
+      var connection = _context.Database.GetDbConnection();
+      await using (connection)
+      {
+        await connection.OpenAsync();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = "dbPRCenter.dbo.sp_KPI_PRtoRRCycleTime"; // 👈 new SP
+        command.CommandType = CommandType.StoredProcedure;
+
+        // Add parameters
+        var monthParam = command.CreateParameter();
+        monthParam.ParameterName = "@Month";
+        monthParam.Value = Month;
+        command.Parameters.Add(monthParam);
+
+        var yearParam = command.CreateParameter();
+        yearParam.ParameterName = "@Year";
+        yearParam.Value = Year;
+        command.Parameters.Add(yearParam);
+
+        var companyParam = command.CreateParameter();
+        companyParam.ParameterName = "@CompanyId";
+        companyParam.Value = CompanyId;
+        command.Parameters.Add(companyParam);
+
+        await using var reader = await command.ExecuteReaderAsync();
+
+        //  Result Set 1: PR → RR details
+        while (await reader.ReadAsync())
+        {
+          detailList.Add(new PrRrCycleTimeDetailDto
+          {
+            PRID = reader.GetInt32(0),
+            PRDate = reader.IsDBNull(1) ? (DateTime?)null : reader.GetDateTime(1),
+            RRID = reader.IsDBNull(2) ? (int?)null : reader.GetInt32(2),
+            RRDate = reader.IsDBNull(3) ? (DateTime?)null : reader.GetDateTime(3),
+            RRStatus = reader.IsDBNull(4) ? null : reader.GetString(4),
+            CycleTime = reader.IsDBNull(5) ? 0 : reader.GetInt32(5)
+          });
+        }
+
+        //  Result Set 2: KPI Summary
+        if (await reader.NextResultAsync() && await reader.ReadAsync())
+        {
+          summary = new PrRrCycleTimeSummaryDto
+          {
+            ActualCycleTime = reader.IsDBNull(0) ? 0 : reader.GetDouble(0),
+            TargetValue = reader.IsDBNull(1) ? 0 : reader.GetDouble(1),
+            TargetType = reader.IsDBNull(2) ? null : reader.GetString(2),
+            Status = reader.IsDBNull(3) ? null : reader.GetString(3),
+            ReportMonth = reader.GetInt32(4),
+            ReportYear = reader.GetInt32(5)
+          };
+        }
+
+        //  Result Set 3: Trend Data
+        if (await reader.NextResultAsync())
+        {
+          while (await reader.ReadAsync())
+          {
+            trendList.Add(new KpiPrToRrCycleTimeTrend
+            {
+              Month = reader.GetInt32(0),
+              Year = reader.GetInt32(1),
+              CycleTime = reader.IsDBNull(2) ? 0 : Convert.ToDouble(reader.GetDecimal(2))
+            });
+          }
+        }
+      }
+
+      // Combine everything into the response DTO
+      var response = new PrRrCycleTimeResponseDto
+      {
+        Details = detailList,
+        Summary = summary,
+        Trend = trendList
+      };
+
+      return Ok(response);
+    }
+
 
     [HttpPost("saveKpiTargets")]
     public async Task<IActionResult> SaveKpiTargets([FromBody] List<KpiTargetDto> targets)

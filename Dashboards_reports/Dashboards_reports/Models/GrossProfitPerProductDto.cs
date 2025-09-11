@@ -7,6 +7,7 @@ namespace Dashboards_reports.Models
     public string? ItemName { get; set; }
     public string? SortMonth { get; set; }       // Format: "yyyy-MM"
     public string? DisplayMonth { get; set; }    // Format: "MMM-yyyy" (e.g., Jan-2025)
+    public string? Display_Name { get; set; }
     public decimal GrossProfit { get; set; }
     public decimal QuantityDelivered { get; set; }
     public decimal TotalSales { get; set; }
