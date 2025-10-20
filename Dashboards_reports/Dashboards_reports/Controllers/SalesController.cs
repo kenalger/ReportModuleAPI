@@ -220,20 +220,44 @@ namespace Dashboards_reports.Controllers
       return Ok(results);
     }
 
+    //[HttpGet("sales-report-summary")]
+    //public async Task<ActionResult<IEnumerable<SalesReportSummaryDto>>> GetSalesReportSummary(DateTime startDate, DateTime endDate, int companyId)
+    //{
+    //  var results = await _context.SalesReportSummaryDto
+    //    .FromSqlRaw (
+    //      "EXEC sp_GetSalesReportByMonthAndLocation @startDate, @endDate, @companyId",
+    //          new SqlParameter("@startDate", startDate),
+    //          new SqlParameter("@endDate", endDate),
+    //          new SqlParameter("@companyId", companyId)
+    //    )
+    //    .ToListAsync ();
+
+    //  return Ok(results);
+    //}
+
     [HttpGet("sales-report-summary")]
-    public async Task<ActionResult<IEnumerable<SalesReportSummaryDto>>> GetSalesReportSummary(DateTime startDate, DateTime endDate, int companyId)
+    public async Task<ActionResult<IEnumerable<SalesReportSummaryDto>>> GetSalesReportSummary(
+
+    DateTime startDate,
+    DateTime endDate,
+    int companyId,
+    bool? isOnline = null,
+    int? locationId = null) // 👈 new optional location filter
     {
       var results = await _context.SalesReportSummaryDto
-        .FromSqlRaw (
-          "EXEC sp_GetSalesReportByMonthAndLocation @startDate, @endDate, @companyId",
+          .FromSqlRaw(
+              "EXEC sp_GetSalesReportByMonthAndLocation @startDate, @endDate, @companyId, @isOnline, @locationId",
               new SqlParameter("@startDate", startDate),
               new SqlParameter("@endDate", endDate),
-              new SqlParameter("@companyId", companyId)
-        )
-        .ToListAsync ();
+              new SqlParameter("@companyId", companyId),
+              new SqlParameter("@isOnline", (object?)isOnline ?? DBNull.Value),
+              new SqlParameter("@locationId", (object?)locationId ?? DBNull.Value)
+          )
+          .ToListAsync();
 
       return Ok(results);
     }
+
 
     [HttpGet("dashboard/Sales")]
     public async Task<SalestMetricsDto?> GetKeyMetricsAsync(DateTime startDate, DateTime endDate, int companyId = 5)
