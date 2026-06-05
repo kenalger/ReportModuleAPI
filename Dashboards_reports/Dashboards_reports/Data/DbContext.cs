@@ -1,5 +1,6 @@
 using Dashboards_reports.Models;
 using Dashboards_reports.Models.KPI;
+using Dashboards_reports.Models.MaterialPlanning;
 using Microsoft.EntityFrameworkCore;
 using System.Drawing;
 
@@ -27,7 +28,8 @@ namespace Dashboards_reports.Data
 
     public DbSet<KpiTargetDto> ProcurementKpiTargets { get; set; }
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+   
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
       base.OnModelCreating(modelBuilder);
 
@@ -43,6 +45,7 @@ namespace Dashboards_reports.Data
       modelBuilder.Entity<TopSellingProductDetailDto>().HasNoKey();
       modelBuilder.Entity<ReservationVsDeliveryDto>().HasNoKey();
       modelBuilder.Entity<KPI_PRtoPOCycleTime>().HasNoKey();
+      
 
       modelBuilder.Entity<SalesTargetDto>(entity =>
       {

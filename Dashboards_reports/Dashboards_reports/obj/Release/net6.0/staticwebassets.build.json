@@ -1,11 +1,1 @@
-{
-  "Version": 1,
-  "Hash": "VlULU6XC9+It+Asz5DZY0TjpmNlYDxGE0DBEL7goyFE=",
-  "Source": "Dashboards_reports",
-  "BasePath": "_content/Dashboards_reports",
-  "Mode": "Default",
-  "ManifestType": "Build",
-  "ReferencedProjectsConfiguration": [],
-  "DiscoveryPatterns": [],
-  "Assets": []
-}
+{"Version":1,"Hash":"u2L/aP+a07HsyEeqZd4AxF30awHqkKRSzs1JRRHMtfU=","Source":"Dashboards_reports","BasePath":"_content/Dashboards_reports","Mode":"Default","ManifestType":"Build","ReferencedProjectsConfiguration":[],"DiscoveryPatterns":[],"Assets":[],"Endpoints":[]}
